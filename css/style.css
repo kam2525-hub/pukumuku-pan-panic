@@ -440,18 +440,56 @@ body {
   box-shadow: 0 4px 0 var(--puku-brown);
 }
 
+/* Live Dough Tension Pill near 3D Bread */
+.dough-state-pill {
+  position: fixed;
+  bottom: 192px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 19;
+  background: rgba(255, 255, 255, 0.94);
+  border: 3px solid var(--puku-brown);
+  border-radius: 99px;
+  padding: 5px 18px;
+  font-family: var(--font-pop);
+  font-size: 0.95rem;
+  color: var(--puku-brown);
+  box-shadow: 0 4px 0 rgba(74, 37, 17, 0.25);
+  transition: transform 0.1s, background 0.15s;
+  white-space: nowrap;
+}
+
+.dough-state-pill.state-puku {
+  background: #ffd43b;
+  color: var(--puku-brown);
+  transform: translateX(-50%) scale(1.08);
+}
+
+.dough-state-pill.state-miracle {
+  background: linear-gradient(90deg, #ff6b6b, #fcc419, #51cf66, #339af0);
+  color: #fff;
+  text-shadow: 1px 1px 0 var(--puku-brown);
+  transform: translateX(-50%) scale(1.14);
+}
+
+.dough-state-pill.state-danger {
+  background: var(--puku-red);
+  color: #fff;
+  animation: gaugeShake 0.08s infinite;
+}
+
 /* Bottom Controls & Gauge Dock */
 .controls-dock {
   position: fixed;
-  bottom: 30px;
+  bottom: 28px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  width: min(680px, 94vw);
+  width: min(780px, 96vw);
   background: rgba(255, 249, 219, 0.96);
   border: 4px solid var(--puku-brown);
   border-radius: 22px;
-  padding: 12px 18px;
+  padding: 10px 16px;
   box-shadow: 0 8px 0 rgba(74, 37, 17, 0.35);
 }
 
@@ -465,12 +503,12 @@ body {
 
 .zone-under { color: #5c677d; }
 .zone-good { color: #2b8a3e; }
-.zone-puku { color: #e67700; font-size: 0.82rem; }
+.zone-puku { color: #d9480f; font-size: 0.8rem; }
 .zone-burst { color: var(--puku-red); }
 
 .gauge-track {
   position: relative;
-  height: 36px;
+  height: 38px;
   background: #e9ecef;
   border: 4px solid var(--puku-brown);
   border-radius: 99px;
@@ -507,7 +545,11 @@ body {
     #ff922b 6px,
     #ff922b 12px
   );
-  opacity: 0.75;
+  opacity: 0.78;
+}
+.zone-bg-miracle {
+  background: #f03e3e;
+  opacity: 0.9;
 }
 
 .gauge-fill {
@@ -517,23 +559,108 @@ body {
   left: 0;
   background: linear-gradient(90deg, #74c0fc 0%, #51cf66 72%, #fcc419 95%, #ff6b6b 100%);
   border-right: 4px solid var(--puku-brown);
-  transition: width 0.03s linear;
+  transition: width 0.025s linear;
+}
+
+.gauge-steam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 24%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.96) 25%, #ffffff 100%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #e67700;
+  border-left: 2px dashed #fab005;
+}
+
+.ship-timer-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 5px;
+  background: var(--puku-blue);
+  z-index: 5;
 }
 
 .gauge-Readout {
   position: absolute;
   inset: 0;
+  z-index: 6;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   font-family: var(--font-pop);
   font-size: 1.05rem;
   color: var(--puku-brown);
   text-shadow: 0 0 6px #fff, 0 0 6px #fff;
 }
 
-.action-buttons-row {
+.momentum-indicator {
+  font-size: 0.8rem;
+  color: var(--puku-red);
+  font-weight: 900;
+}
+
+.action-buttons-grid {
   margin-top: 10px;
+  display: grid;
+  grid-template-columns: 145px 1fr 145px;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.sub-action-btn {
+  border: 3px solid var(--puku-brown);
+  border-radius: 14px;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-round);
+  box-shadow: 0 5px 0 var(--puku-brown);
+  transition: transform 0.06s, box-shadow 0.06s;
+  touch-action: manipulation;
+}
+
+.sub-action-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--puku-brown);
+}
+
+.sub-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-slap {
+  background: #e7f5ff;
+  color: #1864ab;
+}
+
+.btn-ship {
+  background: #d3f9d8;
+  color: #2b8a3e;
+}
+
+.sub-btn-icon {
+  font-family: var(--font-pop);
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+.sub-btn-key {
+  font-size: 0.68rem;
+  font-weight: 800;
+  opacity: 0.88;
 }
 
 .inject-btn {
@@ -542,17 +669,18 @@ body {
   color: #fff;
   border: 4px solid var(--puku-brown);
   border-radius: 16px;
-  padding: 11px 16px;
+  padding: 9px 14px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   box-shadow: 0 6px 0 var(--puku-brown);
   transition: transform 0.06s, box-shadow 0.06s, background 0.1s;
   touch-action: manipulation;
 }
 
-.inject-btn:active,
+.inject-btn:active:not(:disabled),
 .inject-btn.pressing {
   transform: translateY(4px) scale(0.99);
   box-shadow: 0 2px 0 var(--puku-brown);
@@ -566,14 +694,68 @@ body {
 
 .inject-main-text {
   font-family: var(--font-pop);
-  font-size: 1.25rem;
+  font-size: 1.18rem;
   letter-spacing: 0.5px;
 }
 
 .inject-sub-text {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 800;
   opacity: 0.95;
+}
+
+.highscore-banner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: #fff;
+  border: 3px solid var(--puku-brown);
+  border-radius: 14px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.hs-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hs-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #6c584c;
+}
+
+.hs-val {
+  font-family: var(--font-pop);
+  font-size: 1.05rem;
+  color: var(--puku-red);
+}
+
+.rank-badge {
+  background: var(--puku-yellow);
+  color: var(--puku-brown);
+  border: 2px solid var(--puku-brown);
+  border-radius: 99px;
+  padding: 1px 10px;
+  font-family: var(--font-pop);
+  font-weight: 900;
+}
+
+.res-rank-banner {
+  margin: 6px 0 10px;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.new-record-badge {
+  background: var(--puku-red);
+  color: #fff;
+  border-radius: 99px;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  margin-left: 6px;
 }
 
 /* Fictional Method Disclaimer Footer */
@@ -946,9 +1128,19 @@ body {
   }
   .customer-banner {
     top: auto;
-    bottom: 185px;
+    bottom: 205px;
     right: 12px;
     left: 12px;
     max-width: none;
+  }
+  .action-buttons-grid {
+    grid-template-columns: 108px 1fr 108px;
+    gap: 6px;
+  }
+  .sub-btn-icon {
+    font-size: 0.78rem;
+  }
+  .inject-main-text {
+    font-size: 0.98rem;
   }
 }

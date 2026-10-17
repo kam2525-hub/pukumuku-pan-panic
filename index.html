@@ -33,7 +33,7 @@
 
     <div class="hud-stats">
       <div class="clock-box" id="clock-box">
-        <span class="clock-label">開店6:30まで</span>
+        <span class="clock-label" id="clock-label">開店6:30まで</span>
         <span class="clock-time" id="hud-clock">05:30</span>
       </div>
       <div class="profit-box">
@@ -46,7 +46,7 @@
       </div>
       <div class="fever-box hidden" id="fever-box">
         <span class="fever-sparkle">⚡</span>
-        <span class="fever-label">純利益3倍フィーバー中！</span>
+        <span class="fever-label" id="fever-label-text">純利益3倍フィーバー！</span>
       </div>
     </div>
 
@@ -70,6 +70,11 @@
     </div>
   </div>
 
+  <!-- Live Dough Tension Badge floating near the 3D Bread -->
+  <div id="dough-state-pill" class="dough-state-pill">
+    🥖 生地をセット完了！長押しで具を詰めよう
+  </div>
+
   <!-- Active Bread Order & Fill Gauge HUD -->
   <main class="game-hud" id="game-hud">
     <!-- Current Bread POP Card -->
@@ -78,7 +83,7 @@
       <div class="bread-title-row">
         <h2 id="bread-name">クリームぱん</h2>
         <span id="bread-subname" class="bread-subname"></span>
-        <span id="bread-price" class="bread-price">180プク</span>
+        <span id="bread-price" class="bread-price">定価 180プク</span>
       </div>
       <p id="bread-filling" class="bread-filling">具材：自家製濃厚カスタード</p>
       <p id="bread-hint" class="bread-hint">【注入系】後半一気にカスタードの重みで「ずっしり」垂れ下がるので95%〜99%を見極めよう！</p>
@@ -96,22 +101,40 @@
         <div class="gauge-labels">
           <span class="zone-under">スカスカ (&lt;70%)</span>
           <span class="zone-good">いい感じ (70-94%)</span>
-          <span class="zone-puku">✨極上プクムク!(95-99%)✨</span>
+          <span class="zone-puku">✨極上(95-99%) / 🌟神(98-99.5%)</span>
           <span class="zone-burst">💥100%破裂</span>
         </div>
         <div class="gauge-track" id="gauge-track">
           <div class="gauge-zone zone-bg-under" style="width: 70%"></div>
           <div class="gauge-zone zone-bg-good" style="left: 70%; width: 25%"></div>
           <div class="gauge-zone zone-bg-puku" style="left: 95%; width: 5%"></div>
+          <div class="gauge-zone zone-bg-miracle" style="left: 98%; width: 1.5%"></div>
           <div class="gauge-fill" id="gauge-fill" style="width: 0%"></div>
-          <div class="gauge-Readout" id="gauge-readout">充填度: <strong id="fill-percent">0.0</strong>%</div>
+          <!-- Steam blind curtain that appears on high-combo/rush to test real 3D eye judgment! -->
+          <div id="gauge-steam" class="gauge-steam hidden">💨 湯気ブラインド！（3Dのぱんの膨らみと音で見極めろ！）</div>
+          <!-- Auto-ship countdown bar when player releases button -->
+          <div id="ship-timer-bar" class="ship-timer-bar" style="width: 0%"></div>
+          <div class="gauge-Readout" id="gauge-readout">
+            充填度: <strong id="fill-percent">0.0</strong>%
+            <span id="momentum-indicator" class="momentum-indicator"></span>
+          </div>
         </div>
       </div>
 
-      <div class="action-buttons-row">
+      <div class="action-buttons-grid">
+        <button id="btn-slap" class="sub-action-btn btn-slap" disabled title="膨らみすぎた生地を叩いてガスを抜く（Xキー）">
+          <span class="sub-btn-icon">👋 ペシッ！ガス抜き</span>
+          <span class="sub-btn-key">-4.5% 戻す (Xキー)</span>
+        </button>
+
         <button id="btn-inject" class="inject-btn" disabled>
-          <span class="inject-main-text">🥖 長押しで具材を詰める！（Spaceキー対応）</span>
-          <span class="inject-sub-text">離すと完成・95%〜99%で『極上プクムク！』</span>
+          <span class="inject-main-text">🥖 長押しで具材を注入！（Spaceキー）</span>
+          <span class="inject-sub-text">離しても余韻で少し膨らむぞ！追い注入・微調整もOK！</span>
+        </button>
+
+        <button id="btn-ship" class="sub-action-btn btn-ship" disabled title="余韻を止めて今すぐショーケースへ並べる（Enterキー）">
+          <span class="sub-btn-icon">🛎️ 今すぐ並べる！</span>
+          <span class="sub-btn-key">即確定 (Enterキー)</span>
         </button>
       </div>
     </section>
@@ -133,24 +156,40 @@
       <p class="title-catch">
         「プクムクのぱんは、小ぶりなのに具がぎっしり！」<br />
         朝6:30の開店ベルが鳴るまでに、看板息子の<strong>純くん</strong>と一緒に<br />
-        はちきれんばかりの<strong>『極上プクムク状態（充填度95〜99%）』</strong>を目指そう！
+        はちきれんばかりの<strong>『極上プクムク状態（95〜99%）』『神プクムク（98〜99.5%）』</strong>を目指そう！
       </p>
+
+      <!-- High Score & Rank Banner -->
+      <div class="highscore-banner">
+        <div class="hs-item">
+          <span class="hs-label">🏆 最高純利益</span>
+          <strong id="title-high-profit" class="hs-val">0 プク</strong>
+        </div>
+        <div class="hs-item">
+          <span class="hs-label">🔥 サバイバル最高記録</span>
+          <strong id="title-high-survival" class="hs-val">0 個連続</strong>
+        </div>
+        <div class="hs-item">
+          <span class="hs-label">🎖️ 現在の職人称号</span>
+          <strong id="title-baker-rank" class="hs-val rank-badge">見習いバイト</strong>
+        </div>
+      </div>
 
       <div class="rules-grid">
         <div class="rule-item">
-          <span class="rule-icon">🤏</span>
-          <strong>長押しでぷくぷく注入</strong>
-          <p>押している間、具材が詰まってパン生地がリアルに膨らむ！指を離してショーケースへ並べよう。</p>
+          <span class="rule-icon">🥖</span>
+          <strong>① 長押し注入＆余韻膨張</strong>
+          <p>長押し（Space）で具材注入！指を離したあとも生地は<strong>「ぷく〜っ」と余韻で膨らむ</strong>ぞ！寸止め追い注入も可能！</p>
         </div>
         <div class="rule-item">
-          <span class="rule-icon">✨</span>
-          <strong>95%〜99%が『極上プクムク！』</strong>
-          <p>限界ギリギリまで詰めると高純利益＆『手描きPOPぱん図鑑』が解放！</p>
+          <span class="rule-icon">👋</span>
+          <strong>② ペシッ！ガス抜き＆即出荷</strong>
+          <p>「ヤバい、100%超えて破裂する！」と思ったら<strong>『ガス抜き(X)』</strong>で-4.5%戻すか、<strong>『今すぐ並べる(Enter)』</strong>で即ピタ止め！</p>
         </div>
         <div class="rule-item">
-          <span class="rule-icon">💥</span>
-          <strong>100%超えで顔面大破裂！</strong>
-          <p>欲張りすぎると生地が弾けて、純くんの顔面がカスタードやチョコまみれに！</p>
+          <span class="rule-icon">🌟</span>
+          <strong>③ 98%で『神プクムク』＆フィーバー</strong>
+          <p>95〜99%で極上＆図鑑解放！さらに<strong>98.0〜99.5%は『神プクムク（利益4倍＋時間回復）』</strong>！3連続成功で3倍フィーバー！</p>
         </div>
       </div>
 
@@ -158,10 +197,10 @@
         <label class="mode-label">仕込みモード選択：</label>
         <div class="mode-buttons">
           <button id="btn-mode-timed" class="mode-btn active" data-mode="TIMED">
-            ⏰ 朝6:30開店アタック (60秒スピード勝負)
+            ⏰ 朝6:30開店アタック (60秒スピード＆ラッシュ勝負)
           </button>
           <button id="btn-mode-survival" class="mode-btn" data-mode="SURVIVAL">
-            🔥 純くんの極上サバイバル (1回破裂即死・限界挑戦)
+            🔥 純くんの極上サバイバル (1回破裂orスカスカ即死・限界挑戦)
           </button>
         </div>
       </div>
@@ -181,8 +220,12 @@
   <!-- Result Modal (6:30 AM Opening & Jun-kun Poem) -->
   <div id="modal-result" class="modal-overlay hidden">
     <div class="modal-card result-card">
-      <div class="handwritten-ribbon">🔔 朝6:30 開店しました！</div>
-      <h2 class="result-heading">本日の仕込み結果発表</h2>
+      <div class="handwritten-ribbon" id="res-ribbon">🔔 朝6:30 開店しました！</div>
+      <h2 class="result-heading" id="res-heading">本日の仕込み結果発表</h2>
+      <div class="res-rank-banner">
+        認定称号：<span id="res-rank-badge" class="rank-badge">南台のルーキー</span>
+        <span id="res-new-record" class="new-record-badge hidden">🎉 自己ベスト更新！</span>
+      </div>
 
       <div class="result-summary-grid">
         <div class="result-stat-box highlight-profit">
@@ -194,7 +237,7 @@
           <span class="stat-num"><span id="res-total-breads">0</span> <small>個</small></span>
         </div>
         <div class="result-stat-box">
-          <span class="stat-label">✨極上プクムク数</span>
+          <span class="stat-label">✨極上 / 🌟神プク</span>
           <span class="stat-num"><span id="res-pukumuku-count">0</span> <small>個</small></span>
         </div>
         <div class="result-stat-box">
@@ -223,6 +266,7 @@
 
       <div class="title-btn-group">
         <button id="btn-retry" class="start-btn">🌅 翌朝の仕込みへ（もう1回遊ぶ）</button>
+        <button id="btn-back-title" class="retro-btn btn-yellow">🏠 タイトル・モード選択</button>
         <button id="btn-open-zukan-result" class="retro-btn btn-yellow">📖 手描きPOPぱん図鑑</button>
         <button id="btn-share" class="retro-btn btn-blue">📤 結果をコピーしてシェア</button>
       </div>
@@ -236,7 +280,7 @@
         <div>
           <span class="handwritten-ribbon">パン工房プクムク 対面ガラスケース</span>
           <h2 class="zukan-title">📖 ショーケースの『手描きPOPぱん図鑑』</h2>
-          <p class="zukan-sub">ゲームで『極上プクムク！(95〜99%)』を達成すると手描きPOPが解放されます！（カードクリックでそのパンを練習試作できます）</p>
+          <p class="zukan-sub">ゲームで『極上プクムク！(95〜99%)』を達成すると手描きPOPが解放されます！（カードクリックでそのパンから仕込みスタートできます）</p>
         </div>
         <button id="btn-close-zukan" class="retro-btn btn-red">✖ 閉じる</button>
       </div>
