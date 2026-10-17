@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>純くんの朝6:30！プクムク・パン詰めパニック | パン工房プクムク公式ゲーム</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800;900&family=Yusei+Magic&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- 3D Viewport Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Burst Splatter Overlay on Screen -->
+  <div id="splatter-overlay" class="hidden"></div>
+
+  <!-- Top Signboard HUD (Pukumuku Exterior Sign Style) -->
+  <header class="shop-header">
+    <div class="signboard-brand">
+      <span class="shop-sub">東京都中野区南台・朝6:30開店</span>
+      <h1 class="shop-title">パン工房 プクムク</h1>
+    </div>
+
+    <div class="hud-stats">
+      <div class="clock-box" id="clock-box">
+        <span class="clock-label">開店6:30まで</span>
+        <span class="clock-time" id="hud-clock">05:30</span>
+      </div>
+      <div class="profit-box">
+        <span class="profit-label">本日の純利益</span>
+        <span class="profit-value"><span id="hud-profit">0</span> <small>プク</small></span>
+      </div>
+      <div class="combo-box" id="combo-box">
+        <span class="combo-label">極上コンボ</span>
+        <span class="combo-value" id="hud-combo">0</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btn-zukan" class="retro-btn btn-yellow" title="手描きPOPぱん図鑑">
+        📖 ぱん図鑑 (<span id="zukan-count">0</span>/13)
+      </button>
+      <button id="btn-sound" class="retro-btn btn-icon" title="サウンド切替">🔊</button>
+    </div>
+  </header>
+
+  <!-- Customer Request Banner (常連さんリクエスト) -->
+  <div id="customer-banner" class="customer-banner hidden">
+    <div class="customer-avatar" id="customer-icon">🧔‍♂️</div>
+    <div class="customer-bubble">
+      <div class="customer-name-row">
+        <span id="customer-name" class="customer-name">早起きの常連おじさん</span>
+        <span class="customer-bonus-badge">常連ボーナス 純利益2倍！</span>
+      </div>
+      <p id="customer-speech" class="customer-speech">「おはよう純くん！いつものレーズンかきのこ、ずっしり頼むよ！」</p>
+    </div>
+  </div>
+
+  <!-- Active Bread Order & Fill Gauge HUD -->
+  <main class="game-hud" id="game-hud">
+    <!-- Current Bread POP Card -->
+    <section class="bread-order-card" id="bread-order-card">
+      <div class="pop-badge" id="bread-badge">不動の人気No.1！</div>
+      <div class="bread-title-row">
+        <h2 id="bread-name">クリームぱん</h2>
+        <span id="bread-subname" class="bread-subname"></span>
+        <span id="bread-price" class="bread-price">180プク</span>
+      </div>
+      <p id="bread-filling" class="bread-filling">具材：自家製濃厚カスタード</p>
+      <p id="bread-hint" class="bread-hint">【注入系】後半一気にカスタードの重みで「ずっしり」垂れ下がるので95%〜99%を見極めよう！</p>
+    </section>
+
+    <!-- Floating Judgment Banner -->
+    <div id="judgment-popup" class="judgment-popup hidden">
+      <div class="judgment-title" id="judgment-title">✨極上プクムク！✨</div>
+      <div class="judgment-detail" id="judgment-detail">+360プク</div>
+    </div>
+
+    <!-- Bottom Controls & Pukumuku Meter -->
+    <section class="controls-dock">
+      <div class="gauge-wrapper">
+        <div class="gauge-labels">
+          <span class="zone-under">スカスカ (&lt;70%)</span>
+          <span class="zone-good">いい感じ (70-94%)</span>
+          <span class="zone-puku">✨極上プクムク!(95-99%)✨</span>
+          <span class="zone-burst">💥100%破裂</span>
+        </div>
+        <div class="gauge-track" id="gauge-track">
+          <div class="gauge-zone zone-bg-under" style="width: 70%"></div>
+          <div class="gauge-zone zone-bg-good" style="left: 70%; width: 25%"></div>
+          <div class="gauge-zone zone-bg-puku" style="left: 95%; width: 5%"></div>
+          <div class="gauge-fill" id="gauge-fill" style="width: 0%"></div>
+          <div class="gauge-Readout" id="gauge-readout">充填度: <strong id="fill-percent">0.0</strong>%</div>
+        </div>
+      </div>
+
+      <div class="action-buttons-row">
+        <button id="btn-inject" class="inject-btn" disabled>
+          <span class="inject-main-text">🥖 長押しで具材を詰める！（Spaceキー対応）</span>
+          <span class="inject-sub-text">離すと完成・95%〜99%で『極上プクムク！』</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Fictional Method Disclaimer Bar (Always visible footer) -->
+  <footer class="disclaimer-bar">
+    ※本ゲーム内の「パン生地に具材をポンプ注入・無理やり包み込む」等の作り方は<strong>ゲーム用のフィクション（架空の演出）</strong>であり、実際の「パン工房プクムク」の丁寧なパン製法とは異なります。 | © パン工房プクムク
+  </footer>
+
+  <!-- Title / Start Overlay Modal -->
+  <div id="modal-title" class="modal-overlay">
+    <div class="modal-card title-card">
+      <div class="handwritten-ribbon">中野区南台・名物ベーカリー公式ゲーム</div>
+      <h1 class="main-logo">
+        <span class="logo-top">純くんの朝6:30！</span>
+        <span class="logo-main">プクムク・パン詰めパニック</span>
+      </h1>
+      <p class="title-catch">
+        「プクムクのぱんは、小ぶりなのに具がぎっしり！」<br />
+        朝6:30の開店ベルが鳴るまでに、看板息子の<strong>純くん</strong>と一緒に<br />
+        はちきれんばかりの<strong>『極上プクムク状態（充填度95〜99%）』</strong>を目指そう！
+      </p>
+
+      <div class="rules-grid">
+        <div class="rule-item">
+          <span class="rule-icon">🤏</span>
+          <strong>長押しでぷくぷく注入</strong>
+          <p>押している間、具材が詰まってパン生地がリアルに膨らむ！指を離してショーケースへ並べよう。</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-icon">✨</span>
+          <strong>95%〜99%が『極上プクムク！』</strong>
+          <p>限界ギリギリまで詰めると高純利益＆『手描きPOPぱん図鑑』が解放！</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-icon">💥</span>
+          <strong>100%超えで顔面大破裂！</strong>
+          <p>欲張りすぎると生地が弾けて、純くんの顔面がカスタードやチョコまみれに！</p>
+        </div>
+      </div>
+
+      <div class="fictional-notice-box">
+        <strong>【重要なおことわり】</strong><br />
+        ※ゲーム内のパンの作り方（ポンプ注入や巨大具材の押し込みなど）はゲームを面白くするための<strong>フィクション（架空の演出）</strong>です。実際の「パン工房プクムク」では、毎朝ひとつひとつ丁寧にパンを手作りしています。
+      </div>
+
+      <div class="title-btn-group">
+        <button id="btn-start-game" class="start-btn">🔔 朝5:30 仕込みスタート！</button>
+        <button id="btn-open-zukan-title" class="retro-btn btn-yellow">📖 ショーケースの『手描きPOPぱん図鑑』を見る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Modal (6:30 AM Opening & Jun-kun Poem) -->
+  <div id="modal-result" class="modal-overlay hidden">
+    <div class="modal-card result-card">
+      <div class="handwritten-ribbon">🔔 朝6:30 開店しました！</div>
+      <h2 class="result-heading">本日の仕込み結果発表</h2>
+
+      <div class="result-summary-grid">
+        <div class="result-stat-box highlight-profit">
+          <span class="stat-label">本日の純利益</span>
+          <span class="stat-num"><span id="res-profit">0</span> <small>プク</small></span>
+        </div>
+        <div class="result-stat-box">
+          <span class="stat-label">完成したぱん</span>
+          <span class="stat-num"><span id="res-total-breads">0</span> <small>個</small></span>
+        </div>
+        <div class="result-stat-box">
+          <span class="stat-label">✨極上プクムク数</span>
+          <span class="stat-num"><span id="res-pukumuku-count">0</span> <small>個</small></span>
+        </div>
+        <div class="result-stat-box">
+          <span class="stat-label">💥顔面破裂数</span>
+          <span class="stat-num"><span id="res-burst-count">0</span> <small>回</small></span>
+        </div>
+      </div>
+
+      <!-- Showcase Tray Preview -->
+      <div class="showcase-tray-box">
+        <div class="tray-title">🍞 今朝ショーケースに並んだぱんたち</div>
+        <div id="res-bread-tags" class="res-bread-tags"></div>
+      </div>
+
+      <!-- Jun-kun Morning Poem (確定必須仕様③) -->
+      <div class="poem-paper">
+        <div class="poem-header">📝 オフィシャル従業員・純の「今朝のひとこと」</div>
+        <p id="res-poem-text" class="poem-body">
+          ずっしり重い クリームぱん。<br />
+          持ったあなたの 手もぷくむく。<br />
+          今日もいい１日になりますように。 純
+        </p>
+      </div>
+
+      <p class="result-disclaimer">※ゲーム内のパンの作り方はフィクションであり、実際のパン工房プクムクの製法とは異なります。</p>
+
+      <div class="title-btn-group">
+        <button id="btn-retry" class="start-btn">🌅 翌朝の仕込みへ（もう1回遊ぶ）</button>
+        <button id="btn-open-zukan-result" class="retro-btn btn-yellow">📖 手描きPOPぱん図鑑</button>
+        <button id="btn-share" class="retro-btn btn-blue">📤 結果をコピーしてシェア</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Handwritten POP Bread Encyclopedia Modal (確定必須仕様①) -->
+  <div id="modal-zukan" class="modal-overlay hidden">
+    <div class="modal-card zukan-card">
+      <div class="zukan-header">
+        <div>
+          <span class="handwritten-ribbon">パン工房プクムク 対面ガラスケース</span>
+          <h2 class="zukan-title">📖 ショーケースの『手描きPOPぱん図鑑』</h2>
+          <p class="zukan-sub">ゲームで『極上プクムク！(95〜99%)』を達成すると手描きPOPが解放されます！（カードクリックでそのパンを練習試作できます）</p>
+        </div>
+        <button id="btn-close-zukan" class="retro-btn btn-red">✖ 閉じる</button>
+      </div>
+
+      <div id="zukan-grid" class="zukan-grid"></div>
+
+      <div class="zukan-footer">
+        <span>※表記・特徴は東京都中野区南台「パン工房プクムク」の実在メニューに基づいています（※ゲーム内の注入・包み込みアクションはフィクションです）。</span>
+        <button id="btn-unlock-all" class="retro-btn btn-small">🔓 全てのPOPをプレビュー表示</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
