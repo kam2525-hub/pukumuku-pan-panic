@@ -278,7 +278,7 @@ let junkunParts = {
   rightArmBaseRot: null,
   leftArmBaseRot: null
 };
-const junkunBaseRotY = -Math.PI * 0.5 + 0.22; // Iconic Pukumuku slightly sideways glance!
+const junkunBaseRotY = Math.PI * 0.5; // 正面（手前のカウンター・カメラ）を向くように設定！
 
 const gltfLoader = new GLTFLoader();
 gltfLoader.load(
