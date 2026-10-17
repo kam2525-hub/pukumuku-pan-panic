@@ -75,7 +75,25 @@ class SoundManager {
     this.init();
     const now = this.ctx.currentTime;
 
-    if (grade === 'PUKUMUKU') {
+    if (grade === 'MIRACLE') {
+      // Magnificent Miracle Fanfare! (Rapid ascending arpeggios + chiming chord)
+      const miracleNotes = [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98];
+      miracleNotes.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+        gain.gain.setValueAtTime(0.22, now + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.6);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now + idx * 0.05);
+        osc.stop(now + idx * 0.05 + 0.62);
+      });
+      if (isDog) {
+        setTimeout(() => this.playBark(), 280);
+      }
+    } else if (grade === 'PUKUMUKU') {
       // Sparkling fanfare!
       const notes = [523.25, 659.25, 783.99, 1046.5];
       notes.forEach((freq, idx) => {

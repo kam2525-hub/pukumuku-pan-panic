@@ -145,6 +145,79 @@ body {
   color: var(--puku-blue);
 }
 
+.fever-box {
+  background: linear-gradient(135deg, #ff6b6b 0%, #fcc419 100%);
+  border: 3px solid var(--puku-brown);
+  border-radius: 12px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  animation: feverPulse 0.4s infinite alternate;
+  box-shadow: 0 3px 0 var(--puku-brown);
+}
+
+@keyframes feverPulse {
+  from { transform: scale(0.98); filter: brightness(1.0); }
+  to { transform: scale(1.06); filter: brightness(1.25); }
+}
+
+.fever-sparkle {
+  font-size: 1.1rem;
+}
+
+.fever-label {
+  font-family: var(--font-pop);
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 1px 1px 0 var(--puku-brown);
+}
+
+.mode-select-box {
+  background: #fff;
+  border: 3px solid var(--puku-brown);
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.mode-label {
+  font-weight: 900;
+  font-size: 0.82rem;
+  display: block;
+  margin-bottom: 6px;
+  color: #5c3c1e;
+}
+
+.mode-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mode-btn {
+  font-family: var(--font-pop);
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border: 3px solid var(--puku-brown);
+  border-radius: 12px;
+  background: #f1f3f5;
+  color: #495057;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--puku-brown);
+  transition: all 0.1s;
+}
+
+.mode-btn.active {
+  background: var(--puku-yellow);
+  color: var(--puku-brown);
+  border-color: var(--puku-brown);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 var(--puku-brown);
+}
+
 .header-actions {
   display: flex;
   gap: 8px;

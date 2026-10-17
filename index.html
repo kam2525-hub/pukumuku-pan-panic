@@ -44,6 +44,10 @@
         <span class="combo-label">極上コンボ</span>
         <span class="combo-value" id="hud-combo">0</span>
       </div>
+      <div class="fever-box hidden" id="fever-box">
+        <span class="fever-sparkle">⚡</span>
+        <span class="fever-label">純利益3倍フィーバー中！</span>
+      </div>
     </div>
 
     <div class="header-actions">
@@ -150,13 +154,25 @@
         </div>
       </div>
 
+      <div class="mode-select-box">
+        <label class="mode-label">仕込みモード選択：</label>
+        <div class="mode-buttons">
+          <button id="btn-mode-timed" class="mode-btn active" data-mode="TIMED">
+            ⏰ 朝6:30開店アタック (60秒スピード勝負)
+          </button>
+          <button id="btn-mode-survival" class="mode-btn" data-mode="SURVIVAL">
+            🔥 純くんの極上サバイバル (1回破裂即死・限界挑戦)
+          </button>
+        </div>
+      </div>
+
       <div class="fictional-notice-box">
         <strong>【重要なおことわり】</strong><br />
         ※ゲーム内のパンの作り方（ポンプ注入や巨大具材の押し込みなど）はゲームを面白くするための<strong>フィクション（架空の演出）</strong>です。実際の「パン工房プクムク」では、毎朝ひとつひとつ丁寧にパンを手作りしています。
       </div>
 
       <div class="title-btn-group">
-        <button id="btn-start-game" class="start-btn">🔔 朝5:30 仕込みスタート！</button>
+        <button id="btn-start-game" class="start-btn">🔔 仕込みスタート！</button>
         <button id="btn-open-zukan-title" class="retro-btn btn-yellow">📖 ショーケースの『手描きPOPぱん図鑑』を見る</button>
       </div>
     </div>

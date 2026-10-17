@@ -16,11 +16,15 @@ function saveUnlocked() {
 
 const gameState = {
   phase: 'TITLE', // TITLE | PLAYING | JUDGING | RESULT
-  timeRemaining: 60, // 60 seconds = 5:30 AM to 6:30 AM (1 sec = 1 min)
+  mode: 'TIMED',  // TIMED (60s) | SURVIVAL (1-miss sudden death)
+  timeRemaining: 60,
   profit: 0,
   combo: 0,
+  isFever: false,
+  feverTimeLeft: 0,
   completedBreads: [],
   pukumukuCount: 0,
+  miracleCount: 0,
   burstCount: 0,
   currentBread: BREAD_CATALOG[0],
   currentCustomer: null,
@@ -619,9 +623,10 @@ function finalizeBreadJudgment() {
   const isCustomerMatch =
     gameState.currentCustomer && gameState.currentCustomer.favoriteIds.includes(bread.id);
   const custMultiplier = isCustomerMatch ? gameState.currentCustomer.bonusMultiplier : 1.0;
+  const feverMultiplier = gameState.isFever ? 3.0 : 1.0;
 
   let grade = 'UNDER';
-  let titleText = '💦 スカスカ…';
+  let titleText = '💨 スカスカ…';
   let earnedProfit = 0;
 
   if (pct >= 100) {
@@ -630,11 +635,41 @@ function finalizeBreadJudgment() {
     earnedProfit = 0;
     gameState.combo = 0;
     gameState.burstCount++;
+    gameState.isFever = false;
+    document.getElementById('fever-box').classList.add('hidden');
     gameState.lastHighlightPoem = bread.poemBurst;
 
     activeBreadGroup.visible = false;
     spawnBurstParticles(bread);
     sound.playResult('BURST');
+  } else if (pct >= 98.0 && pct <= 99.5) {
+    // 🌟 MIRACLE PUKUMUKU! (Exact sweet spot)
+    grade = 'MIRACLE';
+    titleText = '🌟 神プクムク！！ (奇跡の98%!) 🌟';
+    gameState.combo += 2;
+    gameState.pukumukuCount++;
+    gameState.miracleCount++;
+
+    const comboBonus = 1 + Math.min(gameState.combo * 0.2, 2.0);
+    earnedProfit = Math.round(bread.basePrice * 4.0 * custMultiplier * comboBonus * feverMultiplier);
+    gameState.profit += earnedProfit;
+    gameState.lastHighlightPoem = bread.poemSuccess;
+
+    // Bonus time for Miracle!
+    if (gameState.mode === 'TIMED') {
+      gameState.timeRemaining += 3.5;
+    }
+
+    // Trigger Fever if combo >= 3
+    if (gameState.combo >= 3 && !gameState.isFever) {
+      triggerFeverMode();
+    }
+
+    unlockedBreadIds.add(bread.id);
+    saveUnlocked();
+    addBreadToShowcase3D(bread, true);
+    gameState.completedBreads.push({ name: bread.name, grade: 'MIRACLE' });
+    sound.playResult('MIRACLE', bread.id === 'dog_pan');
   } else if (pct >= 95) {
     grade = 'PUKUMUKU';
     titleText = '✨ 極上プクムク！！ ✨';
@@ -642,21 +677,24 @@ function finalizeBreadJudgment() {
     gameState.pukumukuCount++;
 
     const comboBonus = 1 + Math.min(gameState.combo * 0.15, 1.5);
-    earnedProfit = Math.round(bread.basePrice * 2.0 * custMultiplier * comboBonus);
+    earnedProfit = Math.round(bread.basePrice * 2.0 * custMultiplier * comboBonus * feverMultiplier);
     gameState.profit += earnedProfit;
     gameState.lastHighlightPoem = bread.poemSuccess;
 
-    // Unlock Handwritten POP in Zukan!
+    // Trigger Fever on 3 combo!
+    if (gameState.combo >= 3 && !gameState.isFever) {
+      triggerFeverMode();
+    }
+
     unlockedBreadIds.add(bread.id);
     saveUnlocked();
-
     addBreadToShowcase3D(bread, true);
     gameState.completedBreads.push({ name: bread.name, grade: 'PUKUMUKU' });
     sound.playResult('PUKUMUKU', bread.id === 'dog_pan');
   } else if (pct >= 70) {
     grade = 'GOOD';
     titleText = '🍞 いい感じ！';
-    earnedProfit = Math.round(bread.basePrice * custMultiplier);
+    earnedProfit = Math.round(bread.basePrice * custMultiplier * feverMultiplier);
     gameState.profit += earnedProfit;
 
     addBreadToShowcase3D(bread, false);
@@ -665,9 +703,11 @@ function finalizeBreadJudgment() {
   } else {
     grade = 'UNDER';
     titleText = '💨 スカスカ（プクムクじゃない）';
-    earnedProfit = Math.round(bread.basePrice * 0.25);
+    earnedProfit = Math.round(bread.basePrice * 0.2);
     gameState.profit += earnedProfit;
     gameState.combo = 0;
+    gameState.isFever = false;
+    document.getElementById('fever-box').classList.add('hidden');
     gameState.completedBreads.push({ name: bread.name, grade: 'UNDER' });
     sound.playResult('UNDER');
   }
@@ -681,24 +721,45 @@ function finalizeBreadJudgment() {
 
   jTitle.textContent = titleText;
   jTitle.style.background =
-    grade === 'PUKUMUKU' ? '#fcc419' : grade === 'BURST' ? '#e03131' : grade === 'GOOD' ? '#40c057' : '#868e96';
+    grade === 'MIRACLE'
+      ? 'linear-gradient(135deg, #f06595 0%, #fcc419 100%)'
+      : grade === 'PUKUMUKU'
+      ? '#fcc419'
+      : grade === 'BURST'
+      ? '#e03131'
+      : grade === 'GOOD'
+      ? '#40c057'
+      : '#868e96';
 
   if (grade === 'BURST') {
     jDetail.textContent = bread.burstMessage;
   } else {
-    const bonusNote = isCustomerMatch && grade !== 'UNDER' ? '（常連ボーナス2倍！）' : '';
-    jDetail.textContent = `充填度 ${pct.toFixed(1)}% / +${earnedProfit}プク ${bonusNote}`;
+    const feverText = gameState.isFever ? '【フィーバー3倍!】' : '';
+    const bonusNote = isCustomerMatch && grade !== 'UNDER' ? '【常連2倍!】' : '';
+    jDetail.textContent = `充填度 ${pct.toFixed(1)}% / +${earnedProfit}プク ${feverText}${bonusNote}`;
   }
 
   popup.classList.remove('hidden');
 
+  // Check SURVIVAL mode sudden death!
+  const isSurvivalFail = gameState.mode === 'SURVIVAL' && (grade === 'BURST' || grade === 'UNDER');
+
   setTimeout(() => {
     popup.classList.add('hidden');
     activeBreadGroup.visible = true;
-    if (gameState.timeRemaining > 0) {
+
+    if (isSurvivalFail) {
+      finishGameAt630('サバイバル終了！ミスなく何個作れたかな？');
+    } else if (gameState.mode === 'SURVIVAL' || gameState.timeRemaining > 0) {
       pickNextOrder();
     }
   }, 1150);
+}
+
+function triggerFeverMode() {
+  gameState.isFever = true;
+  gameState.feverTimeLeft = 8.0; // 8 seconds fever!
+  document.getElementById('fever-box').classList.remove('hidden');
 }
 
 function addBreadToShowcase3D(bread, isPukumuku) {
@@ -847,13 +908,24 @@ document.getElementById('btn-unlock-all').addEventListener('click', () => {
   renderZukanModal();
 });
 
+// Mode selection buttons on title card
+const modeButtons = document.querySelectorAll('.mode-btn');
+modeButtons.forEach((btn) => {
+  btn.addEventListener('click', (e) => {
+    modeButtons.forEach((b) => b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    gameState.mode = e.currentTarget.dataset.mode;
+  });
+});
+
 document.getElementById('btn-sound').addEventListener('click', (e) => {
   const muted = sound.toggleMute();
   e.currentTarget.textContent = muted ? '🔇' : '🔊';
 });
 
 document.getElementById('btn-share').addEventListener('click', (e) => {
-  const text = `【純くんの朝6:30！プクムク・パン詰めパニック】\n本日の純利益：${gameState.profit}プク（極上プクムク：${gameState.pukumukuCount}個）\n\n「${gameState.lastHighlightPoem.replace(/\n/g, ' ')}」\n#パン工房プクムク #純くん`;
+  const modeText = gameState.mode === 'SURVIVAL' ? '【サバイバルモード】' : '【朝6:30開店アタック】';
+  const text = `${modeText} 純くんの朝6:30！プクムク・パン詰めパニック\n本日の純利益：${gameState.profit}プク（極上：${gameState.pukumukuCount}個 / 神プク：${gameState.miracleCount}個）\n\n「${gameState.lastHighlightPoem.replace(/\n/g, ' ')}」\n#パン工房プクムク #純くん`;
   navigator.clipboard.writeText(text).then(() => {
     const btn = e.currentTarget;
     const orig = btn.textContent;
@@ -878,16 +950,29 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.1);
   const elapsed = clock.getElapsedTime();
 
-  // 1. Update morning countdown clock (05:30 -> 06:30)
-  if (gameState.phase === 'PLAYING' || gameState.phase === 'JUDGING') {
-    gameState.timeRemaining -= dt;
-    hudClock.textContent = formatMorningClock(gameState.timeRemaining);
-
-    if (gameState.timeRemaining <= 12) {
-      clockBox.classList.add('urgent');
+  // 1. Update Fever timer
+  if (gameState.isFever) {
+    gameState.feverTimeLeft -= dt;
+    if (gameState.feverTimeLeft <= 0) {
+      gameState.isFever = false;
+      document.getElementById('fever-box').classList.add('hidden');
     }
-    if (gameState.timeRemaining <= 0 && gameState.phase !== 'RESULT') {
-      finishGameAt630();
+  }
+
+  // 2. Update morning countdown clock (05:30 -> 06:30) or Survival badge
+  if (gameState.phase === 'PLAYING' || gameState.phase === 'JUDGING') {
+    if (gameState.mode === 'TIMED') {
+      gameState.timeRemaining -= dt;
+      hudClock.textContent = formatMorningClock(gameState.timeRemaining);
+
+      if (gameState.timeRemaining <= 12) {
+        clockBox.classList.add('urgent');
+      }
+      if (gameState.timeRemaining <= 0 && gameState.phase !== 'RESULT') {
+        finishGameAt630('朝6:30！開店時間になりました！');
+      }
+    } else {
+      hudClock.textContent = `🔥 生存 ${gameState.completedBreads.length}個`;
     }
   }
 
